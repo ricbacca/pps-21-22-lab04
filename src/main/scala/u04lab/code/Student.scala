@@ -5,7 +5,7 @@ import List.*
 trait Student:
   def name: String
   def year: Int
-  def enrolling(course: Course): Unit // the student participates to a Course
+  def enrolling(course: Course*): Unit // the student participates to a Course
   def courses: List[String] // names of course the student participates to
   def hasTeacher(teacher: String): Boolean // is the student participating to a course of this teacher?
 
@@ -14,10 +14,17 @@ trait Course:
   def teacher: String
 
 object Student:
-  def apply(name: String, year: Int = 2017): Student = ???
+  def apply(name: String, year: Int = 2017): Student = StudentImpl(name, year)
 
 object Course:
-  def apply(name: String, teacher: String): Course = ???
+  def apply(name: String, teacher: String): Course = CourseImpl(name, teacher)
+
+case class CourseImpl(override val name: String, override val teacher: String) extends Course
+
+case class StudentImpl(override val name: String, override val year: Int, private var courseList: List[Course] = Nil()) extends Student:
+  override def enrolling(course: Course*): Unit = course.foreach(c => courseList = List.append(Cons(c, Nil()), courseList))
+  override def hasTeacher(teacher: String): Boolean = List.contains(List.map(courseList)(c => c.teacher), teacher)
+  override def courses: List[String] = List.map(courseList)(f => f.name)
 
 @main def checkStudents(): Unit =
   val cPPS = Course("PPS", "Viroli")
@@ -26,7 +33,7 @@ object Course:
   val s1 = Student("mario", 2015)
   val s2 = Student("gino", 2016)
   val s3 = Student("rino") // defaults to 2017
-  s1.enrolling(cPPS)
+  s1.enrolling(cPPS, cSDR)
   s1.enrolling(cPCD)
   s2.enrolling(cPPS)
   s3.enrolling(cPPS)
